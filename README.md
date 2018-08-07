@@ -2,7 +2,7 @@
 
 简单的了解一下插件话：通过占坑技术实现启动一个没有在配置清单注册的Activity.
 
-###<font color=#990000>背景了解一下：</font>
+### <font color=#990000>背景了解一下：</font>
 
 我们都知道activity的启动是一个Ibinder的机制，Ibinder是两个进程通讯一个本地一个远程。
 

@@ -19,6 +19,8 @@ activityThread中的ApplicationThread通过hander属性发Message，让activityT
 ####思路
 既然我们知道了activity启动的流程。我们就知道
 1.需要在我们本地的时候调用startActivity的时候，把真正的intent隐藏起来，设置一个代理的intent
-```Intent newIntent = new Intent(MainActivity.this, HoldActivity.class);
-   newIntent.putExtra("realIntent", intent);```
+```
+Intent newIntent = new Intent(MainActivity.this, HoldActivity.class);
+newIntent.putExtra("realIntent", intent);
+```
                    

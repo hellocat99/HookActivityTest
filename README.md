@@ -25,3 +25,10 @@ Intent newIntent = new Intent(MainActivity.this, HoldActivity.class);
 newIntent.putExtra("realIntent", intent);
 ```
                    
+这样当我们启动的一个没有注册过的activity的时候，就可以就不报错了“activity声明没有找到是否在配置文件中，配置了？"，这个时候会启动我们的占坑的activity.
+那我们时候时候把真正的intnet恢复回来呢？
+答案是，对在activityThread的mH继续hook,我们设置一个callback,当message是启动activity的时候，我们从intent中拿到真正的itent
+```
+Intent intent = (Intent) intentField.get(r);
+Intent realIntent = intent.getParcelableExtra("realIntent");
+```              

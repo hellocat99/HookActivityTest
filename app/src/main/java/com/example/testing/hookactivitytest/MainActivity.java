@@ -99,6 +99,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean handleMessage(Message msg) {
             Log.d("wkl", "bbbb");
+            switch (msg.what) {
+                case 100: {
+                    try {
+                        //100对应LAUNCH_ACTIVITY
+                        //r对应的是ActivityClientRecord类型
+                        final Object r = msg.obj;
+                        Field intentField = r.getClass().getDeclaredField("intent");
+                        intentField.setAccessible(true);
+                        //获取到了intent了
+                        Intent intent = (Intent) intentField.get(r);
+                        Intent realIntent = intent.getParcelableExtra("realIntent");
+                        if (realIntent != null) {
+                            intentField.set(r, realIntent);
+                        }
+                    } catch (Exception e) {
+
+                    }
+                }
+            }
             return false;
         }
     }

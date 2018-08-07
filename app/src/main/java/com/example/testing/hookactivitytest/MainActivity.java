@@ -1,6 +1,7 @@
 package com.example.testing.hookactivitytest;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
@@ -28,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //注意这里我们的CarActivity是没有在配置文件中注册过的
-                MainActivity.this.startActivity(new Intent(MainActivity.this, HoldActivity.class));
+                MainActivity.this.startActivity(
+                        new Intent(MainActivity.this, CarActivity.class));
             }
         });
     }
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private void hookStartActivity() {
         try {
             if (Build.VERSION.SDK_INT >= 26) {
-                Class<?> aClass = Class.forName("android.app.ActivityThread");
+                Class<?> aClass = Class.forName("android.app.ActivityManager");
                 Field getService = aClass.getDeclaredField("IActivityManagerSingleton");
                 getService.setAccessible(true);
                 //获取到了ActivityManager中的IActivityManagerSingleton属性
@@ -112,6 +114,23 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             Log.d("wkl", "aaaaa");
+            if ("startActivity".equals(method.getName())) {
+                int intentIndex = -1;
+                Intent intent = null;
+                if (args != null) {
+                    for (int i = 0; i < args.length; i++) {
+                        if (args[i] instanceof Intent) {
+                            intentIndex = i;
+                            intent = (Intent) args[i];
+                        }
+                    }
+                }
+                if (intentIndex >= 0) {
+                    Intent newIntent = new Intent(MainActivity.this, HoldActivity.class);
+                    newIntent.putExtra("realIntent", intent);
+                    args[intentIndex] = newIntent;
+                }
+            }
             return method.invoke(this.iActivityManagerObj, args);
         }
     }

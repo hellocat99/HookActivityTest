@@ -81,6 +81,27 @@ public class MainActivity extends AppCompatActivity {
                         new Class<?>[]{IActivityManagerClass}, invocationHandler);
 
                 mInstance.set(IActivityManagerSingleton, proxyInstance);
+            } else {
+                Class<?> amnClass = Class.forName("android.app.ActivityManagerNative");
+                Field gDefaultField = amnClass.getDeclaredField("gDefault");
+                gDefaultField.setAccessible(true);
+                //获取到了ActivityManagerNative中的gDefault属性
+                Object gDefault = gDefaultField.get(null);
+
+                Class<?> singletonClass = Class.forName("android.util.Singleton");
+                Field mInstanceField = singletonClass.getDeclaredField("mInstance");
+                mInstanceField.setAccessible(true);
+                //获取到了ActivityManager单例对象
+                Object IActivityManagerObj = mInstanceField.get(gDefault);
+
+                Class<?> IActivityManagerClass = Class.forName("android.app.IActivityManager");
+                ActivityInvocationHandler invocationHandler = new ActivityInvocationHandler(IActivityManagerObj);
+                // 生成IActivityManagerObj的代理对象
+                Object proxyInstance = Proxy.newProxyInstance(getBaseContext().getClassLoader(),
+                        new Class<?>[]{IActivityManagerClass}, invocationHandler);
+
+                mInstanceField.set(gDefault, proxyInstance);
+
             }
 
         } catch (Exception e) {
@@ -98,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean handleMessage(Message msg) {
-            Log.d("wkl", "bbbb");
             switch (msg.what) {
                 case 100: {
                     try {
@@ -113,9 +133,11 @@ public class MainActivity extends AppCompatActivity {
                         if (realIntent != null) {
                             intentField.set(r, realIntent);
                         }
+                        Log.d("wkl", "bbbb");
                     } catch (Exception e) {
-
+                        e.printStackTrace();
                     }
+
                 }
             }
             return false;
@@ -141,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
                         if (args[i] instanceof Intent) {
                             intentIndex = i;
                             intent = (Intent) args[i];
+                            break;
                         }
                     }
                 }

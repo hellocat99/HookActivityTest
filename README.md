@@ -16,7 +16,8 @@ ActivityManagerServer中的IApplicationThread是客户端-------------------对�
 
 activityThread中的ApplicationThread通过hander属性发Message，让activityThread处理handleMessage,hanleMessage根据message会判断是启动actiity还是destory掉activity.
 
-####思路
+### 思路
+
 既然我们知道了activity启动的流程。我们就知道
 1.需要在我们本地的时候调用startActivity的时候，把真正的intent隐藏起来，设置一个代理的intent
 ```

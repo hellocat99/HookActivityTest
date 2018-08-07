@@ -3,6 +3,8 @@ package com.example.testing.hookactivitytest;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,7 +21,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        hookActivity();
+        hookStartActivity();
+        hookLauchActivity();
+
         findViewById(R.id.tv_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -29,10 +33,34 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void hookActivity() {
+    private void hookLauchActivity() {
+        try {
+            Class<?> amClass = Class.forName("android.app.ActivityThread");
+            Method cAThreadMethod = amClass.getDeclaredMethod("currentActivityThread");
+            cAThreadMethod.setAccessible(true);
+            //获取到了ActivityManager中的sCurrentActivityThread属性
+            Object sCurrentActivityThread = cAThreadMethod.invoke(null);
+
+            Field mHField = amClass.getDeclaredField("mH");
+            mHField.setAccessible(true);
+
+            //获取到了ActivityManager中的mH属性
+            Object mH = mHField.get(sCurrentActivityThread);
+
+            Class<?> handlerClass = Class.forName("android.os.Handler");
+            Field mCallbackField = handlerClass.getDeclaredField("mCallback");
+            mCallbackField.setAccessible(true);
+            mCallbackField.set(mH, new ActivityThreadHandlerCallback(mH));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void hookStartActivity() {
         try {
             if (Build.VERSION.SDK_INT >= 26) {
-                Class<?> aClass = Class.forName("android.app.ActivityManager");
+                Class<?> aClass = Class.forName("android.app.ActivityThread");
                 Field getService = aClass.getDeclaredField("IActivityManagerSingleton");
                 getService.setAccessible(true);
                 //获取到了ActivityManager中的IActivityManagerSingleton属性
@@ -53,9 +81,23 @@ public class MainActivity extends AppCompatActivity {
                 mInstance.set(IActivityManagerSingleton, proxyInstance);
             }
 
-
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private class ActivityThreadHandlerCallback implements Handler.Callback {
+
+        Object mH;
+
+        public ActivityThreadHandlerCallback(Object mH) {
+            this.mH = mH;
+        }
+
+        @Override
+        public boolean handleMessage(Message msg) {
+            Log.d("wkl", "bbbb");
+            return false;
         }
     }
 
